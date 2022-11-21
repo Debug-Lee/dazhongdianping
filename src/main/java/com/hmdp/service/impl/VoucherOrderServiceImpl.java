@@ -67,6 +67,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
 
     //异步处理线程池
+    //从线程池获得单线程用来异步处理秒杀订单业务
     private static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newSingleThreadExecutor();
 
     //在类初始化了之后执行，因为这个类初始化了之后，随时可能抢单
@@ -212,7 +213,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 //    }
 
 
-
+    //将代理对象变为类成员变量，这样在异步下单的子线程里面，就可以用代理对象执行方法，保证事务生效
     private IVoucherOrderService proxy;
     @Override
     public Result seckillVoucher(Long voucherId) {
