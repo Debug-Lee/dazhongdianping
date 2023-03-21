@@ -16,7 +16,7 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        //登录拦截器  order(1) 设置拦截器顺序  设置优先级
+        //登录拦截器  order(1) 设置拦截器顺序  设置优先级    order(1) 比 order(0)先执行 ,order(0) 最后执行
         registry.addInterceptor(new LoginInterceptor())
                 .excludePathPatterns(
                         "/shop/**",

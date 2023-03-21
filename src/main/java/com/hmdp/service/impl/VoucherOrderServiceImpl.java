@@ -148,6 +148,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             Long userId = voucherOrder.getUserId();
             //利用redis实现分布式锁
             //1、创建simpleRedisLock对象
+            //减少锁的力度，锁的是 某个用户抢某个优惠券的锁
             RLock lock = redissonClient.getLock("lock:order" + userId + ":" + voucherId);
             //2、获取锁
             boolean isLock = lock.tryLock();
@@ -159,7 +160,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             }
             //4、获取成功
             try {
-                //注意：由于是spring的事务是放在threadLocal中，此时的是多线程，事务会失效
+                //注意：由于是spring事务是放在threadLocal中，此时的是子线程，事务会失效
                 proxy.createVoucherOrder(voucherOrder);
             }finally {
                 lock.unlock();

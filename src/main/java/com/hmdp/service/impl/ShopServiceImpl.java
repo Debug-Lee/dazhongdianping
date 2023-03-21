@@ -206,6 +206,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         list.stream().skip(from).forEach(result ->{
             //获取id
             String idStr = result.getContent().getName();
+            //将id存入 ids
             ids.add(Long.valueOf(idStr));
             //获取distance
             Distance distance = result.getDistance();

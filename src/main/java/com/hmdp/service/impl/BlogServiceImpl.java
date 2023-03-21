@@ -69,7 +69,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
 
     @Override
     public Result queryHotBlogs(Integer current) {
-        // 根据用户查询
+        //      根据用户查询
         Page<Blog> page = query()
                 .orderByDesc("liked")
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
