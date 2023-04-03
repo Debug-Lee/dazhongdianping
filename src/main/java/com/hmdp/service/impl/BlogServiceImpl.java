@@ -69,7 +69,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
 
     @Override
     public Result queryHotBlogs(Integer current) {
-        //      根据用户查询
+        //根据博客点赞高低顺序分页查询
         Page<Blog> page = query()
                 .orderByDesc("liked")
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
@@ -91,6 +91,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         //2、判断当前用户是否已经点赞
         String key = BLOG_LIKED_KEY + blog.getId();
+        //zset  判断当前用户是否有权重，如果有则当前用户点赞了，如果没有那就没有点赞
         Double score = stringRedisTemplate.opsForZSet().score(key, user.getId().toString());
         blog.setIsLike(score != null);
     }

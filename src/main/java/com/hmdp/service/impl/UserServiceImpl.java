@@ -4,6 +4,13 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.CommonRequest;
+import com.aliyuncs.CommonResponse;
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.http.MethodType;
+import com.aliyuncs.profile.DefaultProfile;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
@@ -14,15 +21,15 @@ import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
-import java.text.Format;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -57,12 +64,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         //3、符合，生成验证码
         String code = RandomUtil.randomNumbers(6);
-        //4、存储code到redis中,并设置key的有效时间
-        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone,code,LOGIN_CODE_TTL, TimeUnit.MINUTES);
-        //5、发送验证码
-        log.debug("发送短信验证码成功，验证码：{}",code);
-        //返回ok
-        return Result.ok();
+        Map<String,Object> param = new HashMap<>();
+        param.put("code",code);
+
+        boolean isSend = send(param,phone);
+        if(isSend)
+        {
+            //发送成功，将验证码存入redis中
+            //设置验证码的有效时间
+            stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone,code,LOGIN_CODE_TTL, TimeUnit.MINUTES);
+            return Result.ok();
+        }else {
+            return Result.fail("发送短信失败");
+        }
+
+//        //4、存储code到redis中,并设置key的有效时间
+//        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone,code,LOGIN_CODE_TTL, TimeUnit.MINUTES);
+//        //5、发送验证码
+//        log.debug("发送短信验证码成功，验证码：{}",code);
+//        //返回ok
+//        return Result.ok();
     }
 
     @Override
@@ -171,11 +192,54 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return Result.ok(count);
     }
 
+    //退出功能
+    @Override
+    public Result logout() {
+        //1、从UserHolder拿到用户信息
+        UserHolder.removeUser();
+        return Result.ok();
+    }
+
     private User createUser(String phone) {
         User user = new User();
         user.setPhone(phone);
         user.setNickName(USER_NICK_NAME_PREFIX+RandomUtil.randomString(10));
         save(user);
         return user;
+    }
+
+    //调用阿里云msm发送短信的方法
+    private boolean send(Map<String, Object> param, String phone){
+        if(StringUtils.isEmpty(phone)) return false;
+
+        //初始化
+        DefaultProfile profile =
+                DefaultProfile.getProfile("default", "LTAI5t6tUyTHCXDVTrzmwFKb", "OoTDnFSNYDMTAMK3OErBIGZ2KznP7Y");
+        IAcsClient client = new DefaultAcsClient(profile);
+
+        //设置相关参数
+        CommonRequest request = new CommonRequest();
+        //request.setProtocol(ProtocolType.HTTPS);
+        request.setMethod(MethodType.POST);
+        request.setDomain("dysmsapi.aliyuncs.com");
+        request.setVersion("2017-05-25");
+        request.setAction("SendSms");
+
+        //设置手机号，短信签名，模板code，验证码
+        request.putQueryParameter("PhoneNumbers", phone);
+        request.putQueryParameter("SignName", "阿里云短信测试");
+        request.putQueryParameter("TemplateCode", "SMS_154950909");
+        request.putQueryParameter("TemplateParam", JSONObject.toJSONString(param));
+
+        //调用方法，进行上传阿里云，阿里云接受到进行短信服务
+        try {
+            CommonResponse response=client.getCommonResponse(request);
+            boolean success = response.getHttpResponse().isSuccess();//获取response查看是否上传成功
+            return success;
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

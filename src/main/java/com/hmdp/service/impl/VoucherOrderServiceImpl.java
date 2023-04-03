@@ -256,7 +256,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 //        if(seckillVoucher.getStock() < 1){
 //            return Result.fail("已经被抢完了！");
 //        }
-//
+//        一人一单，每个线程来只能下一次单，所以锁对象 是 userId,控制锁的粒度
+          // long userId ,需要转换位 string类型，通过intern()拿到常量池同一个对象
 //        Long userId = UserHolder.getUser().getId();
 //        //intern() 这个方法是从常量池中拿到数据，如果我们直接使用userId.toString()
 //        // 他拿到的对象实际上是不同的对象，new出来的对象，我们使用锁必须保证锁必须是同把，所以我们需要使用intern()一方法

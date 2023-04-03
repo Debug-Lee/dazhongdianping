@@ -12,6 +12,7 @@ public class RedisIdWoker {
     /**
      * 开始的时间戳
      */
+    //  1970-1-20 7:49:55
     public static final long BEGIN_TIMESTAMP =  1640995200L;
 
     /**

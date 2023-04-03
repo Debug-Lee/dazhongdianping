@@ -84,6 +84,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                 //3、3 没有获取到
                 //线程等待，然后重新查询缓存
                 Thread.sleep(50);
+                //递归调用查询方法
                 return queryWithMutex(id);
             }
             //4、获取到锁，查询数据库,判断是否有数据
@@ -214,6 +215,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             distanceMap.put(idStr,distance);
         });
         //5、查询商铺信息   返回结果有序
+        //Order BY FIELD 按照id顺序去排序
         String idStr = StrUtil.join(",",ids);
         List<Shop> shopList = query().in("id", ids).last("ORDER BY FIELD(id," + idStr + ")").list();
         //6、将对应距离封装进数据里面

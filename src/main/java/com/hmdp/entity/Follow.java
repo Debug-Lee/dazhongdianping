@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 @TableName("tb_follow")
 public class Follow implements Serializable {
-
+//某个用户关注的用户信息
     private static final long serialVersionUID = 1L;
 
     /**

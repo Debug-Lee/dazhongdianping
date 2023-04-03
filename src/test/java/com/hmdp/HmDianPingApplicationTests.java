@@ -111,4 +111,41 @@ class HmDianPingApplicationTests {
     }
 
 
+
+    @Test
+    public  void leecode(){
+        String s = new String("01000111");
+        int nums = findTheLongestBalancedSubstring(s);
+        System.out.println(nums);
+    }
+
+    public int findTheLongestBalancedSubstring(String s) {
+        int maxLen = 0;
+        int curLen = 0;
+        int k = 0;
+        int zeroNums = 0;
+        while(k < s.length()){
+            int num = Integer.valueOf(s.charAt(k));
+            if(num == 0){
+                zeroNums++;
+                curLen++;
+            }else if(num == 1){
+                zeroNums--;
+                curLen++;
+                if(zeroNums == 0){
+                    maxLen = maxLen > curLen ? maxLen : curLen;
+                    curLen = 0;
+                }else if(zeroNums < 0){
+                    zeroNums = 0;
+                    curLen = 0;
+                }
+
+            }
+            k++;
+        }
+
+        return maxLen;
+    }
+
+
 }
